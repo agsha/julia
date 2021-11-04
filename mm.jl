@@ -2,11 +2,8 @@ using LibPQ, Tables, HTTP, CSV, Random, StatsBase, FreqTables, SQLite, Base, Dat
 StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS;
 using Base: show_supertypes;
 import Base: iterate;
+import Base.Threads.@spawn
 
-import Pkg; Pkg.add("LibPQ"); Pkg.add("Tables"); Pkg.add("Plots"); Pkg.add("HTTP"); Pkg.add("CSV"); 
-Pkg.add("Random"); Pkg.add("StatsBase"); Pkg.add("FreqTables"); Pkg.add("SQLite"); 
- Pkg.add("Dates"); Pkg.add("JuliaDB"); Pkg.add("StatsPlots"); Pkg.add("Statistics"); Pkg.add("StructArrays"); 
-Pkg.add("NPFinancial"); Pkg.add("Distributions"); Pkg.add("DataStructures");Pkg.add("PlotlyJS");
 
 function p2(p1::Number, r::Number, t::Number)
     return Float64(p1)*((1+Float64(r))^Float64(t))
@@ -48,7 +45,7 @@ mutable struct FastListNode{T}
 end
 mutable struct FastList{T}
     len::Int
-    sz::Int
+    sz::Int # the next free node in the list
     list::Vector{FastListNode{T}}
     function FastList{T}(l::Int) where T
         fl = new{T}()
@@ -224,4 +221,47 @@ function fmt(d::DateTime)
 end
 function fmt(d::Any)
     string(d)
+end
+function weiner(days::Int, μ::Float64, σ::Float64, s::Vector{Float64}, 
+        ϕ::Vector{Float64}, dist::Normal{Float64})
+    s[1] = 100
+    a::Float64 = μ/365.0
+    b::Float64 = σ/sqrt(365.0)
+    rand!(dist, ϕ)
+    for i::Int in 2:days
+        s[i] = s[i-1]*(1 + a + ϕ[i]*b)
+    end  
+    return s
+end
+
+function downscale(Y::Vector{Float64}, points::Int)
+    days::Int = length(Y)
+    step::Float64 = 1
+    if days > points
+        step = days / points
+    end
+    println(step)
+    XX = Vector{Float64}(undef, 0)
+    YY = Vector{Float64}(undef, 0)
+    for i in 1:step:days
+        push!(XX, Int(i))
+        push!(YY, Y[min(days, Int(round(i)))])
+    end
+    return XX, YY
+end
+function simulate(d::Dict{String, Point})
+    p = d["^NSEI"];
+    
+    dates, prices = p.intDates, p.prices
+    wallets::Vector{Float64} = Vector{Float64}(undef, 1)
+
+    ll = FastList{Int}(10000);
+    investDays::Int = 365*2; redeemDays::Int = 365; days = investDays + redeemDays
+    for start in 1:length(dates) - days - 10
+        ddates = dates[start:end];
+        pprices = prices[start:end];
+        wallet = oneRun(0.15, investDays, redeemDays, ll,
+        ddates, pprices);
+        push!(wallets, wallet);
+    end
 end
