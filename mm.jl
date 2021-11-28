@@ -161,7 +161,7 @@ function gogo(symbol)
 end
 
 function constructDict()::Dict{String, Point}
-	start = DateTime(2000,1,1)
+	start = DateTime(1900,1,1)
     data = columntable(execute(conn, """ select symbol, date, adjclose from nse_raw where date is not null and adjclose is not null order by 1, 2"""))
     symbols = copy(data[1])
     dates = copy(data[2])
