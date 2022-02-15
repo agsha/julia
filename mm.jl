@@ -4,7 +4,13 @@ using Base: show_supertypes;
 import Base: iterate;
 import Base.Threads.@spawn
 
-
+meanNifty = 0.0484
+stdNifty = 1.4118
+# returns the probability (absolute value, not percentage)
+# that the nifty moved by this amount
+function rare(movement)
+    return 1-cdf(Normal(meanNifty, stdNifty), movement)
+end
 function p2(p1::Number, r::Number, t::Number)
     return Float64(p1)*((1+Float64(r))^Float64(t))
 end
