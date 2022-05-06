@@ -1,15 +1,26 @@
 using LibPQ, Tables, HTTP, CSV, Random, StatsBase, FreqTables, SQLite, Base, Dates, JuliaDB, Statistics, 
-StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS;
+StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging;
 using Base: show_supertypes;
 import Base: iterate;
 import Base.Threads.@spawn
+
+# enables logging. To close, call flush(io)
+function initLogging()
+    io = open("/mnt/ramdisk/log.log", "w+")
+    logger = SimpleLogger(io)
+    global_logger(logger)
+    return io
+end
 
 meanNifty = 0.0484
 stdNifty = 1.4118
 # returns the probability (absolute value, not percentage)
 # that the nifty moved by this amount
-function rare(movement)
-    return 1-cdf(Normal(meanNifty, stdNifty), movement)
+function rare(movement::Float64)
+    return rare(stdNifty, movement)
+end
+function rare(std::Float64, movement::Float64)
+    return 1-cdf(Normal(0, std), movement)
 end
 function p2(p1::Number, r::Number, t::Number)
     return Float64(p1)*((1+Float64(r))^Float64(t))
@@ -39,6 +50,7 @@ function splt(s, delim=r"\s+")
     return ar
 end
 import Base: iterate
+import Base: length
 import Base: push!
 mutable struct FastListNode{T}
     prev::Int
@@ -114,6 +126,9 @@ function pr(fl::FastList)
         println(node.data)
     end
 end
+function length(fl::FastList{T}) where T
+    return fl.len
+end
 conn = LibPQ.Connection("dbname=sharath")
 sqlite = SQLite.DB()
 struct Point
@@ -168,11 +183,12 @@ end
 
 function constructDict()::Dict{String, Point}
 	start = DateTime(1900,1,1)
+    d = Dict{String, Point}()
+
     data = columntable(execute(conn, """ select symbol, date, adjclose from nse_raw where date is not null and adjclose is not null order by 1, 2"""))
     symbols = copy(data[1])
     dates = copy(data[2])
     adjclose = copy(data[3])
-    d = Dict{String, Point}()
     for i in 1:length(symbols)
         symbol = symbols[i]
         date = dates[i]
