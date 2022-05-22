@@ -1,5 +1,5 @@
 using LibPQ, Tables, HTTP, CSV, Random, StatsBase, FreqTables, SQLite, Base, Dates, JuliaDB, Statistics, 
-StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging;
+StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging, Serialization;
 using Base: show_supertypes;
 import Base: iterate;
 import Base.Threads.@spawn
@@ -12,12 +12,14 @@ function initLogging()
     return io
 end
 
-meanNifty = 0.0484
-stdNifty = 1.4118
+# 17% per year
+meanNiftyPerDay = 0.0004840183567028453
+#26% per year
+stdNiftyPerDay = 0.01412432293580337
 # returns the probability (absolute value, not percentage)
 # that the nifty moved by this amount
 function rare(movement::Float64)
-    return rare(stdNifty, movement)
+    return rare(stdNiftyPerDay, movement)
 end
 function rare(std::Float64, movement::Float64)
     return 1-cdf(Normal(0, std), movement)
@@ -247,15 +249,14 @@ end
 function weiner(days::Int, μ::Float64, σ::Float64, s::Vector{Float64}, 
         ϕ::Vector{Float64}, dist::Normal{Float64})
     s[1] = 100
-    a::Float64 = μ/365.0
-    b::Float64 = σ/sqrt(365.0)
     rand!(dist, ϕ)
     for i::Int in 2:days
-        s[i] = s[i-1]*(1 + a + ϕ[i]*b)
+        # alternative 1
+        # s[i] = s[i-1]*(1 + σ*ϕ[i] + μ)
+        # alternative 2
+        s[i] = s[i-1]*exp(σ*ϕ[i] + μ)
     end  
-    return s
 end
-
 function downscale(Y::Vector{Float64}, points::Int)
     days::Int = length(Y)
     step::Float64 = 1
