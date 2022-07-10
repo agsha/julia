@@ -1,5 +1,5 @@
 using LibPQ, Tables, HTTP, CSV, Random, StatsBase, FreqTables, SQLite, Base, Dates, JuliaDB, Statistics, 
-StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging, Serialization;
+StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging, Serialization, ReusePatterns;
 using Base: show_supertypes;
 import Base: iterate;
 import Base.Threads.@spawn
