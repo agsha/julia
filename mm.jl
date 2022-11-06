@@ -1,5 +1,5 @@
 using LibPQ, Tables, HTTP, CSV, Random, StatsBase, FreqTables, SQLite, Base, Dates, JuliaDB, Statistics, 
-StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging, Serialization, ReusePatterns;
+StructArrays, Distributions, NPFinancial, Random, DataStructures, PlotlyJS, Logging, Serialization, ReusePatterns, ActuaryUtilities;
 using Base: show_supertypes;
 import Base: iterate;
 import Base.Threads.@spawn
@@ -69,13 +69,20 @@ mutable struct FastList{T}
     list::Vector{FastListNode{T}}
     function FastList{T}(l::Int) where T
         fl = new{T}()
-        fl.list = Vector{FastListNode{T}}(undef, l)
-        for i in 1:l
+        fl.list = Vector{FastListNode{T}}(undef, l+1)
+        for i in 1:l+1
             fl.list[i] = FastListNode{T}()
         end
         fl.len = 0
         fl.list[1].prev = fl.list[1].next = 1
         fl.sz = 2 # the first node is the root
+        return fl
+    end
+    function FastList{T}(vec::Vector{T}) where T
+        fl = FastList{T}(length(vec))
+        for v in vec
+            push!(fl, v)
+        end
         return fl
     end
 end
