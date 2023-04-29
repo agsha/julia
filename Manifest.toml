@@ -1,5 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
+julia_version = "1.7.2"
 manifest_format = "2.0"
 
 [[deps.AbstractFFTs]]
@@ -1072,6 +1073,12 @@ deps = ["Random", "Test"]
 git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.9.6"
+
+[[deps.TypeTree]]
+deps = ["InteractiveUtils"]
+git-tree-sha1 = "c1adbb6b9d9374babe8975a456f383a37a8e02ec"
+uuid = "04da0e3b-1cad-4b2c-a963-fc1602baf1af"
+version = "0.3.0"
 
 [[deps.URIParser]]
 deps = ["Unicode"]
